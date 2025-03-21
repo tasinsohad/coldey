@@ -1,0 +1,52 @@
+import { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+
+export default function EmailSender() {
+  const [emailData, setEmailData] = useState({ to: "", subject: "", text: "" });
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
+
+  const handleChange = (e) => {
+    setEmailData({ ...emailData, [e.target.name]: e.target.value });
+  };
+
+  const sendEmail = async () => {
+    setLoading(true);
+    setMessage("");
+    try {
+      const response = await fetch("http://localhost:5000/send-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(emailData),
+      });
+      const result = await response.json();
+      setMessage(result.message);
+    } catch (error) {
+      setMessage("Error sending email");
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div className="flex justify-center items-center min-h-screen bg-gray-100">
+      <Card className="w-full max-w-lg p-6 bg-white shadow-md rounded-xl">
+        <CardContent>
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">Send Cold Email</h2>
+          <Label className="block text-sm font-medium text-gray-700">Recipient</Label>
+          <Input type="email" name="to" value={emailData.to} onChange={handleChange} placeholder="Enter recipient email" className="mb-3" />
+          <Label className="block text-sm font-medium text-gray-700">Subject</Label>
+          <Input type="text" name="subject" value={emailData.subject} onChange={handleChange} placeholder="Email subject" className="mb-3" />
+          <Label className="block text-sm font-medium text-gray-700">Message</Label>
+          <Input type="text" name="text" value={emailData.text} onChange={handleChange} placeholder="Write your message" className="mb-3" />
+          <Button onClick={sendEmail} disabled={loading} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-xl">
+            {loading ? "Sending..." : "Send Email"}
+          </Button>
+          {message && <p className="mt-3 text-center text-gray-700">{message}</p>}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
